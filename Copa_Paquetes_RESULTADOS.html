@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Copa Paquetes · Resultados en directo</title>
+<style>
+  :root{--navy:#0B2545;--accent:#13A89E;--light:#EAF4F3;--bg:#F4F7F8;--gold:#D4AF37;--silver:#9AA5B1;--bronze:#CD7F32;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--navy);padding:16px;max-width:760px;margin:0 auto;padding-bottom:60px}
+  header{text-align:center;margin-bottom:8px}
+  h1{font-size:1.7rem;letter-spacing:.5px}
+  .sub{color:var(--accent);font-size:.9rem;margin-top:2px}
+  .banner{text-align:center;font-size:.78rem;padding:7px;border-radius:8px;margin:14px 0 12px;background:var(--light);color:var(--accent);border:1px solid #b9e0dc}
+  h2{font-size:1.05rem;margin:18px 0 10px;border-left:4px solid var(--accent);padding-left:8px}
+  .round{background:#fff;border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:0 2px 8px rgba(11,37,69,.08)}
+  .round-title{background:var(--navy);color:#fff;border-radius:8px;padding:6px 10px;font-weight:600;margin-bottom:10px;text-align:center}
+  .court{background:var(--light);border-radius:8px;padding:10px;margin-bottom:8px}
+  .court:last-child{margin-bottom:0}
+  .court-name{font-size:.75rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+  .pair{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0}
+  .pair span{flex:1;font-size:.92rem}
+  .pair span.win{font-weight:700}
+  .score-box{width:64px;text-align:center;font-size:1.05rem;font-weight:700}
+  .vs{font-size:.7rem;color:#999;text-align:center;margin:2px 0}
+  table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(11,37,69,.08)}
+  th{background:var(--navy);color:#fff;padding:10px 8px;font-size:.85rem;text-align:left}
+  td{padding:10px 8px;border-bottom:1px solid #eee;font-size:.95rem}
+  tr:last-child td{border-bottom:none}
+  .pos{font-weight:700;text-align:center;width:42px}
+  .pts{font-weight:700;text-align:right;color:var(--accent);font-size:1.05rem}
+  .played{text-align:center;color:#888;font-size:.85rem}
+  .wd{text-align:center;color:#666;font-size:.82rem;font-weight:600}
+  tr.r1{background:#FFFDF2}.medal{font-size:1.05rem}
+  .note{font-size:.75rem;color:#888;text-align:center;margin-top:12px;line-height:1.4}
+  .rules{background:#fff;border-radius:12px;padding:4px 14px;margin-bottom:12px;box-shadow:0 2px 8px rgba(11,37,69,.08)}
+  .rules summary{cursor:pointer;font-weight:700;padding:10px 0;color:var(--navy);font-size:.95rem}
+  .rules-body{font-size:.85rem;line-height:1.5;color:#444;padding-bottom:10px}
+  .rules-body h4{color:var(--accent);margin:10px 0 3px;font-size:.85rem}
+  .rules-body ol{margin:4px 0 0 18px}
+  .rules-body li{margin:3px 0}
+  .status{position:fixed;bottom:0;left:0;right:0;background:var(--navy);color:#fff;font-size:.72rem;text-align:center;padding:6px}
+  .hidden{display:none}
+  .setup{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(11,37,69,.08);margin-top:20px}
+  .setup h3{margin-bottom:6px}
+  .setup p{font-size:.85rem;color:#555;line-height:1.5;margin-bottom:14px}
+  .setup label{display:block;font-size:.8rem;font-weight:600;margin:10px 0 4px}
+  .setup input{width:100%;padding:10px;border:1.5px solid var(--navy);border-radius:8px;font-size:.95rem}
+  .btn{width:100%;padding:12px;border:none;border-radius:8px;font-size:.95rem;font-weight:700;cursor:pointer;background:var(--accent);color:#fff;margin-top:14px}
+  .err{color:#c0392b;font-size:.8rem;margin-top:8px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>🏆 Copa Paquetes</h1>
+  <div class="sub">Resultados en directo · 24 puntos · inicio 21:00</div>
+</header>
+
+<div id="setup" class="setup hidden">
+  <h3>Conectar al torneo</h3>
+  <p>Introduce el Bin ID que te pase el anotador para ver los resultados en directo.</p>
+  <label>Bin ID</label>
+  <input id="cfgBin" type="text" placeholder="6xxxxxxxxxxxxxxxxxx">
+  <button class="btn" id="btnConnect">Ver resultados</button>
+  <div id="setupErr" class="err"></div>
+</div>
+
+<div id="app" class="hidden">
+  <div class="banner">👀 Solo lectura · se actualiza solo conforme el anotador mete los marcadores.</div>
+  <h2>Clasificación</h2>
+  <table>
+    <thead><tr><th class="pos">#</th><th>Jugador</th><th class="played">PJ</th><th class="wd">G/E</th><th class="pts">Puntos</th></tr></thead>
+    <tbody id="standings"></tbody>
+  </table>
+  <h2>Partidos</h2>
+  <div id="rounds"></div>
+  <details class="rules">
+    <summary>📋 Normas y desempates</summary>
+    <div class="rules-body">
+      <h4>Formato</h4>
+      <p>8 jugadores · 7 rondas · 2 pistas. Cada uno juega una vez con cada compañero. Las parejas cambian cada ronda.</p>
+      <h4>Puntuación y saque</h4>
+      <p>Cada partido reparte 24 puntos entre las dos parejas (la suma siempre es 24). Los 24 puntos salen del saque: cada jugador de la pista saca 6 veces (una vuelta de 4 saques y otra de 2). Puntuación individual: cada jugador suma lo que logra su pareja. Gana quien más puntos acumule tras las 7 rondas (máx. 168). Reglas normales de pádel, sin límite de tiempo.</p>
+      <h4>Horario</h4>
+      <p>Comienzo a las 21:00 con 5 min de calentamiento antes del primer partido. A partir del segundo, se entra y se juega directamente la bola de saque. Los resultados se anotan al acabar cada partido y se vuelcan aquí.</p>
+      <h4>Desempates (en orden)</h4>
+      <ol>
+        <li><b>Más puntos</b> en total.</li>
+        <li><b>Puntos en enfrentamientos directos</b> entre los empatados (vale para empates dobles o triples).</li>
+        <li><b>Partidos ganados</b> (pareja con 13+).</li>
+        <li><b>Partidos empatados</b> (12-12).</li>
+        <li><b>Mejor resultado</b> en un partido.</li>
+        <li><b>Peor resultado más alto</b> de todos sus partidos.</li>
+      </ol>
+    </div>
+  </details>
+  <p class="note">Pantalla compartida. ¡Que gane el mejor! 🍻</p>
+</div>
+
+<div class="status" id="status">—</div>
+
+<script>
+const PLAYERS=["Miguelito","Álvaro","Pedro","Fran","Rubén","Bruno","Martín","JM"];
+const ROUNDS=[
+ [[["Miguelito","Fran"],["Rubén","Pedro"]],[["Bruno","Álvaro"],["Martín","JM"]]],
+ [[["Miguelito","Bruno"],["JM","Fran"]],[["Álvaro","Pedro"],["Martín","Rubén"]]],
+ [[["JM","Bruno"],["Pedro","Fran"]],[["Miguelito","Martín"],["Álvaro","Rubén"]]],
+ [[["Pedro","Bruno"],["Álvaro","Martín"]],[["Fran","Rubén"],["Miguelito","JM"]]],
+ [[["Fran","Martín"],["Miguelito","Álvaro"]],[["Rubén","Bruno"],["Pedro","JM"]]],
+ [[["JM","Álvaro"],["Miguelito","Rubén"]],[["Bruno","Fran"],["Martín","Pedro"]]],
+ [[["Rubén","JM"],["Bruno","Martín"]],[["Fran","Álvaro"],["Miguelito","Pedro"]]]
+];
+const TARGET=24, API="https://api.jsonbin.io/v3", LS_BIN="copa_visor_bin";
+let binId="", data={}, lastJSON="";
+function key(r,c){return `r${r}c${c}`;}
+function $(id){return document.getElementById(id);}
+function setStatus(t){$("status").textContent=t;}
+
+async function readBin(){
+  const res=await fetch(`${API}/b/${binId}/latest`,{headers:{"X-Bin-Meta":"false"}});
+  if(!res.ok) throw new Error("No se pudo leer ("+res.status+"). ¿Bin ID correcto?");
+  const j=await res.json(); return (j.record&&j.record.results)?j.record.results:{};
+}
+
+$("btnConnect").addEventListener("click", async ()=>{
+  const b=$("cfgBin").value.trim();
+  if(!b){ $("setupErr").textContent="Introduce el Bin ID."; return; }
+  binId=b; $("setupErr").textContent="Conectando…";
+  try{ data=await readBin(); localStorage.setItem(LS_BIN,binId); start(); }
+  catch(e){ $("setupErr").textContent=e.message; }
+});
+
+function start(){
+  $("setup").classList.add("hidden"); $("app").classList.remove("hidden");
+  lastJSON=JSON.stringify(data); build(); recompute();
+  setStatus("En directo"); setInterval(poll,5000);
+}
+
+function build(){
+  const cont=$("rounds"); cont.innerHTML="";
+  ROUNDS.forEach((round,r)=>{
+    const div=document.createElement("div"); div.className="round";
+    div.innerHTML=`<div class="round-title">Ronda ${r+1}</div>`;
+    round.forEach((court,c)=>{
+      const [A,B]=court, a=data[key(r,c)];
+      const has=a!==undefined&&a!==null&&a!=='';
+      const av=has?a:'–', bv=has?(TARGET-Number(a)):'–';
+      const aWin=has&&Number(a)>TARGET/2, bWin=has&&Number(a)<TARGET/2;
+      const wrap=document.createElement("div"); wrap.className="court";
+      wrap.innerHTML=`<div class="court-name">Pista ${c+1}</div>
+        <div class="pair"><span class="${aWin?'win':''}">${A[0]} + ${A[1]}</span><div class="score-box">${av}</div></div>
+        <div class="vs">— vs —</div>
+        <div class="pair"><span class="${bWin?'win':''}">${B[0]} + ${B[1]}</span><div class="score-box">${bv}</div></div>`;
+      div.appendChild(wrap);
+    });
+    cont.appendChild(div);
+  });
+}
+
+function computeStats(){
+  const st={}; PLAYERS.forEach(p=>{st[p]={pts:0,pj:0,won:0,draw:0,scores:[]};});
+  const matches=[];
+  ROUNDS.forEach((round,r)=>round.forEach((court,c)=>{
+    const a=data[key(r,c)]; if(a===undefined||a===null||a==='')return;
+    const [A,B]=court,av=Number(a),bv=TARGET-av;
+    const scoreOf={};
+    A.forEach(p=>{scoreOf[p]=av;}); B.forEach(p=>{scoreOf[p]=bv;});
+    A.forEach(p=>{const s=st[p];s.pts+=av;s.pj++;s.scores.push(av);if(av>12)s.won++;else if(av===12)s.draw++;});
+    B.forEach(p=>{const s=st[p];s.pts+=bv;s.pj++;s.scores.push(bv);if(bv>12)s.won++;else if(bv===12)s.draw++;});
+    matches.push({players:[...A,...B], scoreOf});
+  }));
+  return {st, matches};
+}
+
+function h2hPoints(p, group, matches){
+  let sum=0;
+  const others=group.filter(g=>g!==p);
+  matches.forEach(m=>{
+    if(!(p in m.scoreOf)) return;
+    if(others.some(o=>o in m.scoreOf)) sum+=m.scoreOf[p];
+  });
+  return sum;
+}
+
+function rankPlayers(){
+  const {st, matches}=computeStats();
+  const best=p=>st[p].scores.length?Math.max(...st[p].scores):0;
+  const worst=p=>st[p].scores.length?Math.min(...st[p].scores):0;
+  let arr=PLAYERS.slice().sort((x,y)=>{
+    if(st[y].pts!==st[x].pts) return st[y].pts-st[x].pts;
+    const grp=PLAYERS.filter(p=>st[p].pts===st[x].pts);
+    if(grp.length>1){
+      const hx=h2hPoints(x,grp,matches), hy=h2hPoints(y,grp,matches);
+      if(hy!==hx) return hy-hx;
+    }
+    if(st[y].won!==st[x].won) return st[y].won-st[x].won;
+    if(st[y].draw!==st[x].draw) return st[y].draw-st[x].draw;
+    if(best(y)!==best(x)) return best(y)-best(x);
+    if(worst(y)!==worst(x)) return worst(y)-worst(x);
+    return x.localeCompare(y);
+  });
+  return arr.map(p=>({p,pts:st[p].pts,pj:st[p].pj,won:st[p].won,draw:st[p].draw}));
+}
+
+function recompute(){
+  const ranked=rankPlayers();
+  const tb=$("standings"); tb.innerHTML=""; const medals=["🥇","🥈","🥉"];
+  ranked.forEach((row,i)=>{
+    const tr=document.createElement("tr"); if(i===0&&row.pts>0)tr.className="r1";
+    const pos=(i<3&&row.pts>0)?`<span class="medal">${medals[i]}</span>`:(i+1);
+    tr.innerHTML=`<td class="pos">${pos}</td><td>${row.p}</td><td class="played">${row.pj}</td><td class="wd">${row.won}/${row.draw}</td><td class="pts">${row.pts}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+async function poll(){
+  try{
+    const fresh=await readBin(); const j=JSON.stringify(fresh);
+    if(j!==lastJSON){ data=fresh; lastJSON=j; build(); recompute(); setStatus("Actualizado · "+new Date().toLocaleTimeString()); }
+  }catch(e){ setStatus("⚠️ "+e.message); }
+}
+
+(function init(){
+  const params=new URLSearchParams(location.search);
+  const fromUrl=params.get("bin"), saved=localStorage.getItem(LS_BIN);
+  const b=fromUrl||saved;
+  if(b){ binId=b; localStorage.setItem(LS_BIN,binId);
+    readBin().then(d=>{data=d;start();}).catch(e=>{ $("setup").classList.remove("hidden"); $("cfgBin").value=b; $("setupErr").textContent=e.message; setStatus("Introduce el Bin ID"); });
+  } else { $("setup").classList.remove("hidden"); setStatus("Introduce el Bin ID para empezar"); }
+})();
+</script>
+</body>
+</html>
