@@ -117,9 +117,12 @@ function $(id){return document.getElementById(id);}
 function setStatus(t){$("status").textContent=t;}
 
 async function readBin(){
-  const res=await fetch(`${API}/b/${binId}/latest`,{headers:{"X-Bin-Meta":"false"}});
+  const res=await fetch(`${API}/b/${binId}/latest`);
   if(!res.ok) throw new Error("No se pudo leer ("+res.status+"). ¿Bin ID correcto?");
-  const j=await res.json(); return (j.record&&j.record.results)?j.record.results:{};
+  const j=await res.json();
+  // JSONBin puede devolver {record:{results}} o directamente {results} según cabeceras
+  const rec = (j && j.record!==undefined) ? j.record : j;
+  return (rec && rec.results) ? rec.results : {};
 }
 
 $("btnConnect").addEventListener("click", async ()=>{

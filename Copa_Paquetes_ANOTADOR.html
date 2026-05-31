@@ -165,9 +165,11 @@ async function createBin(){
   const j=await res.json(); return j.metadata.id;
 }
 async function readBin(){
-  const res=await fetch(`${API}/b/${binId}/latest`,{headers:{"X-Master-Key":masterKey,"X-Bin-Meta":"false"}});
+  const res=await fetch(`${API}/b/${binId}/latest`,{headers:{"X-Master-Key":masterKey}});
   if(!res.ok) throw new Error("No se pudo leer el bin ("+res.status+")");
-  const j=await res.json(); return (j.record&&j.record.results)?j.record.results:{};
+  const j=await res.json();
+  const rec = (j && j.record!==undefined) ? j.record : j;
+  return (rec && rec.results) ? rec.results : {};
 }
 async function writeBin(){
   saving=true;
