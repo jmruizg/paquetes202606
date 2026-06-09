@@ -100,17 +100,22 @@
 <div class="status" id="status">—</div>
 
 <script>
-const PLAYERS=["Miguelito","Álvaro","Pedro","Juanjo","Rubén","Bruno","Dani","JM"];
+const PLAYERS=["Carlos","Miguel","Alberto","Juanjo","Rubén","Bruno","Dani","JM"];
 const ROUNDS=[
- [[["Miguelito","Juanjo"],["Rubén","Pedro"]],[["Bruno","Álvaro"],["Dani","JM"]]],
- [[["Miguelito","Bruno"],["JM","Juanjo"]],[["Álvaro","Pedro"],["Dani","Rubén"]]],
- [[["JM","Bruno"],["Pedro","Juanjo"]],[["Miguelito","Dani"],["Álvaro","Rubén"]]],
- [[["Pedro","Bruno"],["Álvaro","Dani"]],[["Juanjo","Rubén"],["Miguelito","JM"]]],
- [[["Juanjo","Dani"],["Miguelito","Álvaro"]],[["Rubén","Bruno"],["Pedro","JM"]]],
- [[["JM","Álvaro"],["Miguelito","Rubén"]],[["Bruno","Juanjo"],["Dani","Pedro"]]],
- [[["Rubén","JM"],["Bruno","Dani"]],[["Juanjo","Álvaro"],["Miguelito","Pedro"]]]
+ [[["Carlos","Juanjo"],["Rubén","Alberto"]],[["Bruno","Miguel"],["Dani","JM"]]],
+ [[["Carlos","Bruno"],["JM","Juanjo"]],[["Miguel","Alberto"],["Dani","Rubén"]]],
+ [[["JM","Bruno"],["Alberto","Juanjo"]],[["Carlos","Dani"],["Miguel","Rubén"]]],
+ [[["Alberto","Bruno"],["Miguel","Dani"]],[["Juanjo","Rubén"],["Carlos","JM"]]],
+ [[["Juanjo","Dani"],["Carlos","Miguel"]],[["Rubén","Bruno"],["Alberto","JM"]]],
+ [[["JM","Miguel"],["Carlos","Rubén"]],[["Bruno","Juanjo"],["Dani","Alberto"]]],
+ [[["Rubén","JM"],["Bruno","Dani"]],[["Juanjo","Miguel"],["Carlos","Alberto"]]]
 ];
 const TARGET=24, API="https://api.jsonbin.io/v3", LS_BIN="copa_visor_bin";
+// ====== BIN ID DEL TORNEO ======
+// Bin de JSONBin de donde se leen los resultados. Si creas un torneo nuevo
+// (nuevo Bin ID), cámbialo aquí y vuelve a subir este archivo.
+const DEFAULT_BIN="6a1ae0ef21f9ee59d29db609";
+// ================================
 let binId="", data={}, lastJSON="";
 function key(r,c){return `r${r}c${c}`;}
 function $(id){return document.getElementById(id);}
@@ -226,7 +231,7 @@ async function poll(){
 (function init(){
   const params=new URLSearchParams(location.search);
   const fromUrl=params.get("bin"), saved=localStorage.getItem(LS_BIN);
-  const b=fromUrl||saved;
+  const b=fromUrl||DEFAULT_BIN||saved;
   if(b){ binId=b; localStorage.setItem(LS_BIN,binId);
     readBin().then(d=>{data=d;start();}).catch(e=>{ $("setup").classList.remove("hidden"); $("cfgBin").value=b; $("setupErr").textContent=e.message; setStatus("Introduce el Bin ID"); });
   } else { $("setup").classList.remove("hidden"); setStatus("Introduce el Bin ID para empezar"); }
